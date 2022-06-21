@@ -9,6 +9,11 @@ class Management extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+        'input_start_date' => 'date',
+        'input_end_date' => 'date',
+    ];
+
     protected $fillable = [
         'input_year',
         'input_start_date',
@@ -28,6 +33,21 @@ class Management extends Model
         }
 
         return $inputYearList;
+    }
+
+    // 따라하기 코딩
+    public function getStatusColorAttribute()
+    {
+        return [
+            // 'processing' => 'cool-gray',
+            'success' => 'green',
+            'failed' => 'red',
+        ][$this->status] ?? 'cool-gray';
+    }
+
+    public function getDateForHumansAttribute()
+    {
+        return $this->input_start_date->format('M, d Y');
     }
 
 }
