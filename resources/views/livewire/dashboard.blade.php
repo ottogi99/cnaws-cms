@@ -1,7 +1,13 @@
 <div>
     <h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
 
-    <div class="py-4">
+    <div class="py-4 space-y-4">
+        <div class="flex">
+            <div class="w-1/4">
+                <x-input.text wire:model="search" placeholder="검색하세요." />
+            </div>
+        </div>
+
         <div class="flex-col space-y-4">
             <x-table>
                 <x-slot name="head">
@@ -11,8 +17,8 @@
                 </x-slot>
 
                 <x-slot name="body">
-                    @foreach ($management as $item)
-                        <x-table.row>
+                    @forelse ($management as $item)
+                        <x-table.row wire:loading.class.delay="opacity-50">
                             <x-table.cell>
                                 <span href="#" class="inline-flex space-x-2 truncate text-sm leading-5">
                                     <!-- Heroicon name: cash -->
@@ -37,13 +43,21 @@
                             </x-table.cell>
 
 
-
                             <x-table.cell>
                                 {{-- {{ $item->input_end_date->format('M, d Y') }} --}}
                                 {{ $item->date_for_humans }}
                             </x-table.cell>
                         </x-table.row>
-                    @endforeach
+                    @empty
+                        <x-table.row>
+                            <x-table.cell colspan="4">
+                                <div class="flex justify-center items-center space-x-2">
+                                    {{-- <x-icon.inbox class="h-8 w-8 text-cool-gray-400" /> --}}
+                                    <span class="font-medium py-8 text-gray-400 text-xl">검색된 데이터가 없습니다...</span>
+                                </div>
+                            </x-table.cell>
+                        </x-table.row>
+                    @endforelse
                 </x-slot>
             </x-table>
 
