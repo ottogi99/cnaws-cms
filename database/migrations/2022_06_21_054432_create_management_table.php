@@ -14,9 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::create('management', function (Blueprint $table) {
-            $table->year('input_year')->primary();
-            $table->dateTime('input_start_date')->nullable();
-            $table->dateTime('input_end_date')->nullable();
+            $table->year('year')->primary();
+            $table->dateTime('initiate')->nullable();
+            $table->dateTime('dealine')->nullable();
             $table->timestamps();
         });
     }

@@ -13,6 +13,8 @@
         <!-- Styles -->
         <link rel="stylesheet" href="{{ mix('css/app.css') }}">
         @livewireStyles
+        @stack('styles')
+        {{-- <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css"> --}}
 
         <!-- Scripts -->
         <script src="{{ mix('js/app.js') }}" defer></script>
@@ -57,6 +59,8 @@
 
                 @stack('modals')
                 @livewireScripts
+                @stack('scrpits')
+                {{-- <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script> --}}
             </div>
         </div>
     </body>
