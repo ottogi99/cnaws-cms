@@ -14,7 +14,7 @@ class Dashboard extends Component
 
     // public $search = '';
     public $sortField = 'year';
-    public $sortDirection = 'asc';
+    public $sortDirection = 'desc';
     public $showEditModal = false;
     public $showFilters = false;
     public $selected = [];
