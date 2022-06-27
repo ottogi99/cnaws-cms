@@ -37,6 +37,9 @@
             <main>
                 {{ $slot }}
             </main>
+
+            {{-- @livewire('ots.notification') --}}
+            <x-notification default-message="Hey There!" />
         </div>
 
         @stack('modals')

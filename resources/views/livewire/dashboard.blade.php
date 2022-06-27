@@ -2,6 +2,7 @@
     <h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
 
     <div class="py-4 space-y-4">
+        <!-- Top Bar -->
         <div class="flex justify-between">
             <div class="w-2/4 flex space-x-8">
                 <x-input.text wire:model.debounce.500ms="filters.search" id="search" leading-add-on="검색어" placeholder="검색어를 입력하세요..." />
@@ -15,7 +16,16 @@
                 </x-button.link>
             </div>
 
-            <div class="flex space-x-2">
+            <div class="flex space-x-2 items-center">
+                <x-input.group borderless paddingless for="perPage" label="per Page">
+                    <x-input.select wire:model="perPage" id="perPage">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                    </x-input.select>
+                </x-input.group>
+
+
                 {{-- <x-input.select>
                     <option value="" disabled>Export</option>
                     <option value="" disabled>Delete</option>
@@ -27,10 +37,14 @@
                         <span>Export</span>
                     </x-dropdown.item>
 
-                    <x-dropdown.item type="button" wire:click="deleteSelected" class="flex items-center space-x-2">
+                    {{-- <x-dropdown.item type="button" onclick="confirm('Are you sure?') || event.stopImmediatePropagation()" wire:click="deleteSelected" class="flex items-center space-x-2"> --}}
+                    <x-dropdown.item type="button" wire:click="$toggle('showDeleteModal')" class="flex items-center space-x-2">
                         <span>Delete</span>
                     </x-dropdown.item>
                 </x-dropdown>
+
+                @livewire('ots.import-management')
+
                 <x-button.primary wire:click="create"><x-icon.plus/>New</x-button.primary>
             </div>
         </div>
@@ -81,21 +95,33 @@
         </div>
 
 @json($selected)
-
+        <!-- 테이블 -->
         <div class="flex-col space-y-4">
             <x-table>
                 <x-slot name="head">
                     <x-table.header class="pr-0 w-8">
-                        <x-input.checkbox />
+                        <x-input.checkbox wire:model="selectPage" />
                     </x-table.header>
-                    <x-table.header sortable wire:click="sortBy('year')" :direction="$sortField === 'year' ? $sortDirection : null" >년도</x-table.header>
-                    <x-table.header sortable wire:click="sortBy('initiate')" :direction="$sortField === 'initiate' ? $sortDirection : null">개시일</x-table.header>
-                    <x-table.header sortable wire:click="sortBy('deadline')" :direction="$sortField === 'deadline' ? $sortDirection : null">마감일</x-table.header>
-                    <x-table.header sortable wire:click="sortBy('year')" :direction="$sortField === 'year' ? $sortDirection : null">상태</x-table.header>
+                    <x-table.header sortable multi-column wire:click="sortBy('year')" :direction="$sorts['year'] ?? null" >년도</x-table.header>
+                    <x-table.header sortable multi-column wire:click="sortBy('initiate')" :direction="$sorts['initiate'] ?? null">개시일</x-table.header>
+                    <x-table.header sortable multi-column wire:click="sortBy('deadline')" :direction="$sorts['deadline'] ?? null">마감일</x-table.header>
+                    <x-table.header sortable multi-column wire:click="sortBy('year')" :direction="$sorts['year'] ?? null">상태</x-table.header>
                     <x-table.header ></x-table.header>
                 </x-slot>
 
                 <x-slot name="body">
+                    @if ($selectPage)
+                    <x-table.row class="bg-gray-200" wire:key="row-message">
+                        <x-table.cell colspan="6">
+                            @unless ($selectAll)
+                                <span> You have selected <strong>{{ $management->count() }}</strong> management, do you wnat to select all <strong>{{ $management->total() }}</strong> management??? </span>
+                                <x-button.link wire:click="selectAll">Select All</x-button.link>
+                            @else
+                                <span> You are currently selecteing all <strong>{{ $management->total() }}</strong> management.</span>
+                            @endunless
+                        </x-table.cell>
+                    </x-table.row>
+                    @endif
                     @forelse ($management as $item)
                         <x-table.row wire:loading.class.delay="opacity-50" wire:key="row-{{ $item->id }}">
                             <x-table.cell class="pr-0">
@@ -151,6 +177,7 @@
         </div>
     </div>
 
+    <!-- 저장 모달 -->
     <form wire:submit.prevent="save">
         <x-modal.dialog wire:model="showEditModal">
             <x-slot name="title">입력관리</x-slot>
@@ -185,6 +212,21 @@
                     </select>
                     {{-- </x-input.select> --}}
                 </x-input.group>
+    </form>
+
+    {{-- Delete Modal --}}
+    <form wire:submit.prevent="deleteSelected">
+        <x-modal.confirmation wire:model="showDeleteModal">
+            <x-slot name="title">삭제</x-slot>
+            <x-slot name="content">
+                정말로 삭제하시겠습니까? 삭제 후에는 되돌릴 수 없습니다.
+            </x-slot>
+
+            <x-slot name="footer">
+                <x-button.secondary wire:click="$set('showDeleteModal', false)">취소</x-button.primary>
+                <x-button.primary type="submit">삭제</x-button.primary>
+            </x-slot>
+        </x-modal.dialog>
     </form>
 </div>
 

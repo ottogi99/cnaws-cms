@@ -2,22 +2,22 @@
 
 namespace App\Http\Livewire;
 
+use App\Http\Livewire\Ots\WithBulkActions;
+use App\Http\Livewire\Ots\WithPerPagePagination;
+use App\Http\Livewire\Ots\WithSorting;
 use App\Models\Management;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
-use Livewire\WithPagination;
 
 class Dashboard extends Component
 {
-    use WithPagination;
+    use WithPerPagePagination, WithSorting, WithBulkActions;
 
     // public $search = '';
-    public $sortField = 'year';
-    public $sortDirection = 'desc';
     public $showEditModal = false;
+    public $showDeleteModal = false;
     public $showFilters = false;
-    public $selected = [];
     public $filters = [
         'search' => '',
         'year' => '' ,
@@ -31,8 +31,11 @@ class Dashboard extends Component
     public $initiate = null;
     public $deadline = null;
 
-    protected $queryString = ['sortField', 'sortDirection'];
+    // protected $queryString = ['sortField', 'sortDirection'];
+    // protected $queryString = ['perPage'];
+    protected $queryString = ['perPage'];
 
+    protected $listeners = ['refreshManagement' => '$refresh'];
     // Validation 속성
     // protected $rules = [
     //     'editing.year' => 'required|date',
@@ -71,27 +74,25 @@ class Dashboard extends Component
         $this->resetPage();
     }
 
-    public function sortBy($field)
-    {
-        $this->sortDirection = $this->sortField === $field
-            ? $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc'
-            : 'asc';
-
-        $this->sortField = $field;
-    }
-
     public function exportSelected()
     {
         return response()->streamDownload(function () {
-            echo Management::whereKey($this->selected)->toCsv();
+            echo $this->selectedRowsQuery->toCsv();
+            // echo Management::whereKey($this->selected)->toCsv();
         }, 'management.csv');
     }
 
     public function deleteSelected()
     {
-        $management = Management::whereKey($this->selected);
+        // $management = $this->selectAll
+        //     ? $this->managementQuery
+        //     : $this->managementQuery->whereKey($this->selected);
+        //     // : Management::whereKey($this->selected);
+        // $management->delete();
 
-        $management->delete();
+        $this->selectedRowsQuery->delete();
+
+        $this->showDeleteModal = false;
     }
 
     public function makeBlankManagement()
@@ -136,22 +137,45 @@ class Dashboard extends Component
         $this->reset('filters');
     }
 
+    // Dynamic property
+    public function getRowsQueryProperty()
+    {
+        // return Management::query()
+        // ->when($this->filters['year'], function ($query,  $value) {
+        //     $query->where('year', $value);
+        // })
+        $query = Management::query()
+        ->when($this->filters['year'], fn ($query, $year) => $query->where('year', $year))
+        ->when($this->filters['initiate'], fn ($query, $initiate) => $query->where('initiate', Carbon::parse($initiate)))
+        ->when($this->filters['deadline'], fn ($query, $deadline) => $query->where('deadline', Carbon::parse($deadline)))
+        ->when($this->filters['search'], fn ($query, $search) => $query->where('year', 'like', '%'.$this->search.'%'));
+        // ->where('year', 'like', '%'.$this->search.'%')
+
+        return $this->applySorting($query);
+    }
+
+    public function getRowsProperty()
+    {
+        return $this->applyPagination($this->rowsQuery);
+    }
+
     public function render()
     {
         return view('livewire.dashboard', [
             // search --> AppServiceProvider boot() defined
             // 'management' => Management::search('title', $this->search)->paginate(10),
-            'management' => Management::query()
-                // ->when($this->filters['year'], function ($query,  $value) {
-                //     $query->where('year', $value);
-                // })
-                ->when($this->filters['year'], fn ($query, $year) => $query->where('year', $year))
-                ->when($this->filters['initiate'], fn ($query, $initiate) => $query->where('initiate', Carbon::parse($initiate)))
-                ->when($this->filters['deadline'], fn ($query, $deadline) => $query->where('deadline', Carbon::parse($deadline)))
-                ->when($this->filters['search'], fn ($query, $search) => $query->where('year', 'like', '%'.$this->search.'%'))
-                // ->where('year', 'like', '%'.$this->search.'%')
-                ->orderBy($this->sortField, $this->sortDirection)
-                ->paginate(10),
+            'management' => $this->rows,
+            // 'management' => Management::query()
+            //     // ->when($this->filters['year'], function ($query,  $value) {
+            //     //     $query->where('year', $value);
+            //     // })
+            //     ->when($this->filters['year'], fn ($query, $year) => $query->where('year', $year))
+            //     ->when($this->filters['initiate'], fn ($query, $initiate) => $query->where('initiate', Carbon::parse($initiate)))
+            //     ->when($this->filters['deadline'], fn ($query, $deadline) => $query->where('deadline', Carbon::parse($deadline)))
+            //     ->when($this->filters['search'], fn ($query, $search) => $query->where('year', 'like', '%'.$this->search.'%'))
+            //     // ->where('year', 'like', '%'.$this->search.'%')
+            //     ->orderBy($this->sortField, $this->sortDirection)
+            //     ->paginate(10),
         ]);
     }
 }

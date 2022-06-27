@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Livewire\Component;
+
+// use Illuminate\View\Component;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -41,5 +44,9 @@ class AppServiceProvider extends ServiceProvider
         //     $values->prepend($titles);
         //     return $values->implode("\n");
         // });
+
+        Component::macro('notify', function ($message) {
+            $this->dispatchBrowserEvent('notify', $message);
+        });
     }
 }
