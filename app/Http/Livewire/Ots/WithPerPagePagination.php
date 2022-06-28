@@ -7,7 +7,7 @@ trait WithPerPagePagination
 {
     use WithPagination;
 
-    public $perPage = 25;
+    public $perPage = 10;
 
     public function mountWithPerPagePagination()
     {

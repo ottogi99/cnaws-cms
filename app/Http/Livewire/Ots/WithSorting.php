@@ -29,13 +29,17 @@ trait WithSorting
         // $this->sortField = $field;
     }
 
-    public function applySorting($query)
+    public function applySorting($query, $defaultField = null, $defaultDirection = null)
     {
         // return $query->orderBy($this->sortField, $this->sortDirection);
 
-        foreach ($this->sorts as $field => $direction) {
-            $query->orderby($field, $direction);
-        }
+        if (!empty($this->sorts))
+            foreach ($this->sorts as $field => $direction) {
+                $query->orderby($field, $direction);
+            }
+        else
+            if (isset($defaultField) && isset($defaultDirection))
+                $query->orderby($defaultField, $defaultDirection);
 
         return $query;
     }

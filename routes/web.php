@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Livewire\Dashboard;
-use App\Http\Livewire\Ots\Management;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -33,5 +32,8 @@ Route::middleware([
     // })->name('management');
 
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
-    Route::get('/management', Management::class)->name('management');
+    Route::get('/cities', App\Http\Livewire\Ots\Cities::class)->name('cities');
+    Route::get('/nonghyups', App\Http\Livewire\Ots\Nonghyups::class)->name('nonghyups');
+    Route::get('/expenses', App\Http\Livewire\Ots\Expenses::class)->name('expenses');
+    Route::get('/management', App\Http\Livewire\Ots\Management::class)->name('management');
 });

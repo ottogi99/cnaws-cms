@@ -20,5 +20,17 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
+
+        // App\Management::truncate();
+        // $this->call(ManagementTableSeeder::class);
+
+        \App\Models\City::trunctate();
+        $this->call(CitiesTableSeeder::class);
+
+        \App\Models\Nonghyup::truncate();
+        $this->call(NonghyupsTableSeeder::class);
+
+        \App\Models\Expense::truncate();
+        $this->call(ExpensesTableSeeder::class);
     }
 }
