@@ -13,10 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('cities', function (Blueprint $table) {
+        Schema::create('farmlands', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->tinyInteger('sequence')->nullable();
+            // 소규모/영세농
+            $table->decimal('rice_field', 10, 2)->nullable();   // 답작 (논)
+            $table->decimal('field', 10, 2)->nullable();        // 전작 (밭)
+            $table->decimal('other_field', 10, 2)->nullable();  // 기타
             $table->timestamps();
         });
     }
@@ -28,6 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('cities');
+        Schema::dropIfExists('farmlands');
     }
 };

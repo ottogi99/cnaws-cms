@@ -13,11 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('cities', function (Blueprint $table) {
+        Schema::create('staff', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->tinyInteger('sequence')->nullable();
+            $table->date('birthday');
             $table->timestamps();
+
+            $table->foreignId('nonghyup_id')->nullable()->constrained()->after('birthday');
+            $table->foreignId('account_id')->nullable()->constrained()->after('birthday');
         });
     }
 
@@ -28,6 +31,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('cities');
+        Schema::disableForeignKeyConstraints();
+        Schema::dropIfExists('staff');
+        Schema::enableForeignKeyConstraints();
     }
 };

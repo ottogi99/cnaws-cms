@@ -17,6 +17,7 @@ class Expenses extends Component
     use WithPerPagePagination, WithSorting, WithBulkActions;
 
     public $nonghyupsInSelectedCity = [];
+    // public $cityForEditing = '';
 
     public $showEditModal = false;
     public $showDeleteModal = false;
@@ -24,10 +25,13 @@ class Expenses extends Component
     public $filters = [
         'search' => '',
         'city' => '',
-        'name' => '',
-        'address' => '',
-        'contact' => '',
-        'representative' => '',
+        'year' => '',
+        'total-min' => '',
+        'total-max' => '',
+        'do' => '',
+        'sigun' => '',
+        'center' => '',
+        'unit' => '',
     ];
 
     public Expense $editing;
@@ -40,12 +44,14 @@ class Expenses extends Component
     public function rules()
     {
         return  [
-            'editing.name' => ['required',],
-            'editing.city_id' => ['required',],
-            'editing.address' => ['required',],
-            'editing.contact' => ['required',],
-            'editing.representative' => ['required',],
-            'editing.sequence' => 'required',
+            'editing.year' => ['required'],
+            // 'cityForEditing' => 'required',
+            'editing.nonghyup_id' => ['required',],
+            'editing.total' => ['required',],
+            'editing.do' => ['required',],
+            'editing.sigun' => ['required',],
+            'editing.center' => 'required',
+            'editing.unit' => 'required',
         ];
     }
 
@@ -60,13 +66,10 @@ class Expenses extends Component
         $this->resetPage();
     }
 
-    public function updatedEditing($field)
-    {
-        dd($field);
-        if ($field === 'editing.city_id') {
-            $nonghyupsInSelectedCity = Nonghyup::where('city_id', '=', $field);
-        }
-    }
+    // public function updatedCityForEditing($value, $name)
+    // {
+    //     $this->nonghyupsInSelectedCity = Nonghyup::where('city_id', '=', $value)->get();
+    // }
 
     public function getSelectedRowsQueryProperty()
     {
@@ -81,10 +84,23 @@ class Expenses extends Component
         $this->showDeleteModal = false;
     }
 
+    public function getNonghyupsProperty()
+    {
+        return $this->getNonghyups();
+    }
+
+    public function getNonghyups($city = null)
+    {
+        return $city
+            ? Nonghyup::where('city_id', '=', $city)->get()
+            : Nonghyup::all();
+    }
+
     public function makeBlankCity()
     {
         return Expense::make([
-            'year' => '',
+            'year' => now()->year,
+            'nonghyup_id' => 1,
             'total' => 0,
             'do' => 0,
             'sigun' => 0,
@@ -127,19 +143,29 @@ class Expenses extends Component
     {
         $query = DB::table('expenses')
             ->join('nonghyups', 'nonghyup_id', 'nonghyups.id')
-            ->join('cities', 'city_id', 'nonghyups.city_id')
             ->select(
                 'expenses.id', 'expenses.year', 'expenses.total','expenses.do', 'expenses.sigun', 'expenses.center', 'expenses.unit', 'expenses.created_at',
-                'nonghyups.id as nonghyup_id', 'nonghyups.name as nonghyup_name',
-                'cities.name as city_name'
+                'nonghyups.id as nonghyup_id', 'nonghyups.name as nonghyup_name', 'nonghyups.city_id as city_id',
+                // 'cities.id as city_id', 'cities.name as city_name'
             )
             // ->when($this->filters['search'], fn($query, $search) => $query->where('nonghyups.name', 'like', '%'.$search.'%'))
             // ->when($this->filters['city'], fn($query, $search) => $query->where('cities.name', 'like', '%'.$search.'%'))
-            // ->when($this->filters['address'], fn($query, $search) => $query->where('address', 'like', '%'.$search.'%'))
-            // ->when($this->filters['contact'], fn($query, $search) => $query->where('contact', 'like', '%'.$search.'%'))
+            ->when($this->filters['year'], fn($query, $search) => $query->where('expenses.year', '=', $search))
+            ->when($this->filters['total-min'], fn($query, $search) => $query->where('expenses.total', '>=', $search))
+            ->when($this->filters['total-max'], fn($query, $search) => $query->where('expenses.total', '<=', $search))
             // ->when($this->filters['representative'], fn($query, $search) => $query->where('representative', 'like', '%'.$search.'%'))
         ;
-        $query = $this->applySorting($query, 'expenses.created_at', 'desc');
+
+        $query = DB::table('cities')
+            ->joinSub($query, 'T1', function($join){
+                $join->on('cities.id', '=', 'T1.city_id');
+            })
+            ->when($this->filters['city'], fn($query, $search) => $query->where('cities.name', 'like', '%'.$search.'%'))
+            // ->when($this->filters['search'], fn($query, $search) => $query->where('nonghyups.name', 'like', '%'.$search.'%'))
+            ;
+
+        // $query = $this->applySorting($query, 'expenses.created_at', 'desc');
+        $query = $this->applySorting($query);
         // JOIN
         return $query;
     }

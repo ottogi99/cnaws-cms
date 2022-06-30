@@ -36,7 +36,7 @@ class NonghyupsTableSeeder extends Seeder
                     'address' => $this->faker->metropolitanCity().' '.$this->faker->borough(),
                     'contact' => \Illuminate\Support\Str::replace('-', '', $this->faker->localAreaPhoneNumber()),
                     'representative' => $this->faker->company(),
-                    'sequence' => $this->faker->numberBetween(1, 10),
+                    'sequence' => $cityId,
                     'cities_id' => $cityId,
                 ]);
             }

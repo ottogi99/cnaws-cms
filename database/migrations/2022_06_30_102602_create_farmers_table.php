@@ -13,11 +13,17 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('cities', function (Blueprint $table) {
+        Schema::create('farmers', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->tinyInteger('sequence')->nullable();
+            $table->date('birthday');
+            $table->enum('gender', ['M', 'F']);
+            $table->string('address');
+            $table->string('contact', 11);
             $table->timestamps();
+
+            $table->foreignId('nonghyup_id')->constrained()->before('name');
+            $table->foreignId('farmland_id')->nullable()->constrained()->after('contact');
         });
     }
 
@@ -28,6 +34,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('cities');
+        Schema::dropIfExists('farmers');
     }
 };

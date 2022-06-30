@@ -15,10 +15,10 @@ return new class extends Migration
     {
         Schema::create('nonghyups', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 127);
-            $table->string('address', 127);
+            $table->string('name');
+            $table->string('address');
             $table->string('contact', 11);
-            $table->string('representative', 127);
+            $table->string('representative');
             $table->tinyInteger('sequence')->nullable();
             $table->softDeletes();
             $table->timestamps();

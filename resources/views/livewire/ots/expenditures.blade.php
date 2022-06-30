@@ -1,11 +1,11 @@
 <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
+    <h1 class="text-2xl font-semibold text-gray-900">지출 관리</h1>
 
     <div class="py-4 space-y-4">
         <!-- Top Bar -->
         <div class="flex justify-between">
             <div class="w-2/4 flex space-x-8">
-                <x-input.text wire:model.debounce.700ms="filters.search" id="search" leading-add-on="검색어" placeholder="검색어를 입력하세요..." />
+                <x-input.text wire:model.debounce.700ms="filters.search" id="search" leading-add-on="검색어" placeholder="지출항목을 입력하세요..." />
             </div>
 
             <x-button.link wire:click="$toggle('showFilters')" class="mt-4">
@@ -45,7 +45,7 @@
             <div class="bg-gray-200">
                 <div class="bg-gray-200 p-4 rounded shadow-inner flex relative">
                     <div class="flex w-full pr-2 space-x-2">
-                        <x-input.group inline for="filter-city" label="시군">
+                        {{-- <x-input.group inline for="filter-city" label="시군">
                             <x-input.select wire:model="filters.city" id="filter-city">
                                 <option value="" disabled>시/군을 선택하세요</option>
                                 <option value="">전체</option>
@@ -53,25 +53,50 @@
                                 <option value="{{ $city }}">{{ $city }}</option>
                                 @endforeach
                             </x-input.select>
-                        </x-input.group>
+                        </x-input.group> --}}
 
-                        <x-input.group inline for="filter-year" label="년도">
-                            <x-input.select wire:model="filters.year" id="filter-year">
-                                <option value="" disabled>년도 선택하세요</option>
-                                <option value="">전체</option>
-                                @foreach (App\Models\Management::yearList() as $year)
-                                <option value="{{ $year }}">{{ $year }}</option>
+                        <x-input.group inline for="filter-nonghyup" label="농협" :error="$errors->first('filter.nonghyup')">
+                            <x-input.select wire:model="filters.nonghyup" id="filter-nonghyup">
+                                <option value="" disabled>농협을 선택하세요</option>
+                                @foreach ($this->nonghyups as $nonghyup)
+                                <option value="{{ $nonghyup->id }}">{{ $nonghyup->name }}</option>
                                 @endforeach
                             </x-input.select>
                         </x-input.group>
 
-                        <x-input.group inline for="filter-total-min" label="총액 최소값">
-                            <x-input.text wire:model.debounce.500ms="filters.total-min" id="total-min" />
+                        <x-input.group inline for="filter-expenditure_type" label="지출형태" :error="$errors->first('filter.expenditure_type')">
+                            <x-input.select wire:model="filters.expenditure_type" id="filter-expenditure_type">
+                                <option value="" disabled>지출 형태를 선택하세요.</span></option>
+                                @foreach (\App\Models\Expenditure::$EXPENDITURE_TYPES as $key => $label)
+                                <option value="{{ $key }}">{{ $label }}</option>
+                                @endforeach
+                            </x-input.select>
                         </x-input.group>
 
-                        <x-input.group inline for="filter-total-max" label="총액 최대값">
-                            <x-input.text wire:model.debounce.500ms="filters.total-max" id="total-max" />
+                        <x-input.group inline for="filter-expenditure-target" label="지급대상">
+                            <x-input.text wire:model.debounce.500ms="filters.expenditure_target" id="filter-expenditure-target" />
                         </x-input.group>
+
+                        <x-input.group inline for="filter-expenditure-details" label="지급내용">
+                            <x-input.text wire:model.debounce.500ms="filters.expenditure_details" id="filter-expenditure-details" />
+                        </x-input.group>
+
+                        <x-input.group inline for="filter-amount-min" label="지급액(최소)">
+                            <x-input.text wire:model.debounce.500ms="filters.amount_min" id="filter-amount-min" placeholder="금액을 입력하세요..." />
+                        </x-input.group>
+
+                        <x-input.group inline for="filter-amount-max" label="지급액(최대)">
+                            <x-input.text wire:model.debounce.500ms="filters.amount_max" id="filter-amount-max" placeholder="금액을 입력하세요..." />
+                        </x-input.group>
+
+                        <x-input.group inline for="filter-payment-at-min" label="지급일자(시작)">
+                            <x-input.date wire:model="filters.payment_at_min" id="filter-payment-at-min" placeholder="YYYY-MM-DD" />
+                        </x-input.group>
+
+                        <x-input.group inline for="filter-payment-at-max" label="지급일자(종료)">
+                            <x-input.date wire:model="filters.payment_at_max" id="filter-payment-at-max" placeholder="YYYY-MM-DD" />
+                        </x-input.group>
+
 
                         <x-button.link wire:click="resetFilters" class="absoulte right-0 bottom-0 p-4">Reset Filters</x-button.link>
                     </div>
@@ -87,13 +112,14 @@
                     <x-table.header class="pr-0 w-8">
                         <x-input.checkbox wire:model="selectPage" />
                     </x-table.header>
-                    <x-table.header sortable multi-column wire:click="sortBy('name')" :direction="$sorts['city_id'] ?? null" >시군</x-table.header>
-                    <x-table.header sortable multi-column wire:click="sortBy('year')" :direction="$sorts['year'] ?? null">년도</x-table.header>
-                    <x-table.header sortable multi-column wire:click="sortBy('total')" :direction="$sorts['total'] ?? null" >합계</x-table.header>
-                    <x-table.header sortable multi-column wire:click="sortBy('do')" :direction="$sorts['do'] ?? null">도비</x-table.header>
-                    <x-table.header sortable multi-column wire:click="sortBy('sigun')" :direction="$sorts['sigun'] ?? null">시군비</x-table.header>
-                    <x-table.header sortable multi-column wire:click="sortBy('center')" :direction="$sorts['center'] ?? null">중앙회</x-table.header>
-                    <x-table.header sortable multi-column wire:click="sortBy('unit')" :direction="$sorts['unit'] ?? null">지역농협</x-table.header>
+                    <x-table.header sortable multi-column wire:click="sortBy('nonghyup_name')" :direction="$sorts['nonghyup_name'] ?? null" >농협</x-table.header>
+                    <x-table.header sortable multi-column wire:click="sortBy('expenditure_type')" :direction="$sorts['expenditure_type'] ?? null">지출형태</x-table.header>
+                    <x-table.header sortable multi-column wire:click="sortBy('expenditure_item')" :direction="$sorts['expenditure_item'] ?? null">지출항목</x-table.header>
+                    <x-table.header sortable multi-column wire:click="sortBy('expenditure_target')" :direction="$sorts['expenditure_target'] ?? null">지급대상</x-table.header>
+                    <x-table.header sortable multi-column wire:click="sortBy('expenditure_staff_name')" :direction="$sorts['expenditure_staff_name'] ?? null">지급대상자</x-table.header>
+                    <x-table.header sortable multi-column wire:click="sortBy('expenditure_details')" :direction="$sorts['expenditure_details'] ?? null" >지급내용</x-table.header>
+                    <x-table.header sortable multi-column wire:click="sortBy('expenditure_amount')" :direction="$sorts['expenditure_amount'] ?? null" >지급액</x-table.header>
+                    <x-table.header sortable multi-column wire:click="sortBy('payment_at')" :direction="$sorts['payment_at'] ?? null" >지급일자</x-table.header>
                     <x-table.header ></x-table.header>
                 </x-slot>
 
@@ -121,7 +147,7 @@
                                 <span href="#" class="inline-flex space-x-2 truncate text-sm leading-5">
                                     <x-icon.cash class="text-cool-gray-500" />
                                     <p class="text-cool-gray-500 truncate">
-                                        {{ $item->name }}
+                                        {{ $item->nonghyup_name }}
                                     </p>
                                 </span>
                             </x-table.cell>
@@ -129,54 +155,49 @@
                             <x-table.cell>
                                 <span href="#" class="inline-flex space-x-2 truncate text-sm leading-5">
                                     <x-icon.cash class="text-cool-gray-500" />
-                                    <p class="text-cool-gray-500 truncate">
-                                        {{ $item->year }}
-                                    </p>
+                                    <p class="text-cool-gray-500 truncate">{{ $item->expenditure_type }}</p>
                                 </span>
                             </x-table.cell>
 
                             <x-table.cell>
                                 <span href="#" class="inline-flex space-x-2 truncate text-sm leading-5">
                                     <x-icon.cash class="text-cool-gray-500" />
-                                    <p class="text-cool-gray-500 truncate">
-                                        {{ $item->total }}
-                                    </p>
+                                    <p class="text-cool-gray-500 truncate">{{ $item->expenditure_item }}</p>
                                 </span>
                             </x-table.cell>
 
                             <x-table.cell>
                                 <span href="#" class="inline-flex space-x-2 truncate text-sm leading-5">
                                     <x-icon.cash class="text-cool-gray-500" />
-                                    <p class="text-cool-gray-500 truncate">
-                                        {{ $item->do }}
-                                    </p>
+                                    <p class="text-cool-gray-500 truncate">{{ $item->expenditure_target }}</p>
                                 </span>
                             </x-table.cell>
 
                             <x-table.cell>
                                 <span href="#" class="inline-flex space-x-2 truncate text-sm leading-5">
                                     <x-icon.cash class="text-cool-gray-500" />
-                                    <p class="text-cool-gray-500 truncate">
-                                        {{ $item->sigun }}
-                                    </p>
+                                    <p class="text-cool-gray-500 truncate">{{ $item->staff_name }}</p>
                                 </span>
                             </x-table.cell>
 
                             <x-table.cell>
                                 <span href="#" class="inline-flex space-x-2 truncate text-sm leading-5">
                                     <x-icon.cash class="text-cool-gray-500" />
-                                    <p class="text-cool-gray-500 truncate">
-                                        {{ $item->center }}
-                                    </p>
+                                    <p class="text-cool-gray-500 truncate">{{ $item->expenditure_details }}</p>
                                 </span>
                             </x-table.cell>
 
                             <x-table.cell>
                                 <span href="#" class="inline-flex space-x-2 truncate text-sm leading-5">
                                     <x-icon.cash class="text-cool-gray-500" />
-                                    <p class="text-cool-gray-500 truncate">
-                                        {{ $item->unit }}
-                                    </p>
+                                    <p class="text-cool-gray-500 truncate">{{ $item->expenditure_amount }}</p>
+                                </span>
+                            </x-table.cell>
+
+                            <x-table.cell>
+                                <span href="#" class="inline-flex space-x-2 truncate text-sm leading-5">
+                                    <x-icon.cash class="text-cool-gray-500" />
+                                    <p class="text-cool-gray-500 truncate">{{ $item->payment_at }}</p>
                                 </span>
                             </x-table.cell>
 
@@ -206,66 +227,63 @@
     <!-- 저장 모달 -->
     <form wire:submit.prevent="save">
         <x-modal.dialog wire:model="showEditModal">
-            <x-slot name="title">사업비 등록(수정)</x-slot>
-            <x-slot name="content">
-                <x-input.group inline for="editing_year" label="년도" :error="$errors->first('editing.year')">
-                    <x-input.select wire:model="editing.year" id="editing_year">
-                        <option value="" disabled>년도를 선택하세요</option>
-                        @foreach (App\Models\Management::yearList() as $year)
-                        <option value="{{ $year }}">{{ $year }}</option>
-                        @endforeach
-                    </x-input.select>
-                </x-input.group>
+            <x-slot name="title">지출 등록(수정)</x-slot>
 
-                {{-- <x-input.group inline for="editing_city" label="시군" :error="$errors->first('editing.city')">
-                    <x-input.select wire:model="cityForEditing" id="editing_city">
-                        <option value="" disabled>시/군을 선택하세요</option>
-                        @foreach (App\Models\City::$NAMES as $id => $name)
-                        <option value="{{ $id }}">{{ $name }}</option>
-                        @endforeach
-                    </x-input.select>
+
+            <x-slot name="content">
+                {{-- <x-input.group for="editing_nonghyup" label="농협명" :error="$errors->first('editing.nonghyup')">
+                    <x-input.text wire:model.defer="editing.nonghyup_name" id="editing_nonghyup" />
                 </x-input.group> --}}
 
-                <x-input.group inline for="editing_nonghyup" label="농협" :error="$errors->first('editing.nonghyup')">
+                <x-input.group inline for="editing_nonghyup" label="농협" :error="$errors->first('editing.nonghyup_id')">
                     <x-input.select wire:model="editing.nonghyup_id" id="editing_nonghyup">
-                        <option value="" disabled>농협을 선택하세요</option>
-                        {{-- @isset($nonghyupsInSelectedCity) --}}
+                        <option value="" disabled>농협을 선택하세요...</option>
                         @foreach ($this->nonghyups as $nonghyup)
                         <option value="{{ $nonghyup->id }}">{{ $nonghyup->name }}</option>
                         @endforeach
-                        {{-- @endisset --}}
                     </x-input.select>
                 </x-input.group>
 
-                <x-input.group for="editing_total" label="총사업비" :error="$errors->first('editing.total')">
-                    <x-input.text
-                        wire:model.defer="editing.total" id="editing_total"
-                    />
+                <x-input.group inline for="editing_type" label="지출형태" :error="$errors->first('editing.type')">
+                    <x-input.select wire:model="editing.type" id="editing_type">
+                        <option value="" disabled>지출형태를 선택하세요...</option>
+                        @foreach (\App\Models\Expenditure::$EXPENDITURE_TYPES as $key => $label)
+                        <option value="{{ $key }}">{{ $label }}</option>
+                        @endforeach
+                    </x-input.select>
                 </x-input.group>
 
-                <x-input.group for="editing_do" label="도비" :error="$errors->first('editing.do')">
-                    <x-input.text
-                        wire:model.defer="editing.do" id="editing_do"
-                    />
+                <x-input.group for="editing_item" label="지출항목" :error="$errors->first('editing.item')">
+                    <x-input.text wire:model.defer="editing.item" id="editing_item" />
                 </x-input.group>
 
-                <x-input.group for="editing_sigun" label="시군비" :error="$errors->first('editing.sigun')">
-                    <x-input.text
-                        wire:model.defer="editing.sigun" id="editing_sigun"
-                    />
+                @if ($editing->type == \App\Models\Expenditure::$LABOR_TYPE)
+                <x-input.group inline for="editing_staff_id" label="지급대상자" :error="$errors->first('editing.staff_id')">
+                    <x-input.select wire:model="editing.staff_id" id="editing_staff_id">
+                        <option value="" disabled>직원을 선택하세요...</option>
+                        @foreach ($this->staffInNonghyup as $staff)
+                        <option value="{{ $staff->id }}">{{ $staff->name }}</option>
+                        @endforeach
+                    </x-input.select>
+                </x-input.group>
+                @else
+                <x-input.group for="editing_target" label="지급대상" :error="$errors->first('editing.target')">
+                    <x-input.text wire:model.defer="editing.target" id="editing_target" />
+                </x-input.group>
+                @endif
+
+                <x-input.group for="editing_details" label="지급내용" :error="$errors->first('editing.details')">
+                    <x-input.text wire:model.defer="editing.details" id="editing_details" />
                 </x-input.group>
 
-                <x-input.group for="editing_center" label="중앙회" :error="$errors->first('editing.center')">
-                    <x-input.text
-                        wire:model.defer="editing.center" id="editing_center"
-                    />
+                <x-input.group for="editing_amount" label="지급액" :error="$errors->first('editing.amount')">
+                    <x-input.text wire:model.defer="editing.amount" id="editing_amount" />
                 </x-input.group>
 
-                <x-input.group for="editing_unit" label="단위농협" :error="$errors->first('editing.unit')">
-                    <x-input.text
-                        wire:model.defer="editing.unit" id="editing_unit"
-                    />
+                <x-input.group inline for="editing_payment_at" label="지급일">
+                    <x-input.date wire:model="editing.payment_at" id="editing_payment_at" placeholder="YYYY-MM-DD" />
                 </x-input.group>
+
             </x-slot>
 
             <x-slot name="footer">

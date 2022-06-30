@@ -18,4 +18,9 @@ class Nonghyup extends Model
     {
         return $this->belongsTo(City::class);
     }
+
+    public function staff()
+    {
+        return $this->hasMany(Staff::class);
+    }
 }

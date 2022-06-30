@@ -35,5 +35,8 @@ Route::middleware([
     Route::get('/cities', App\Http\Livewire\Ots\Cities::class)->name('cities');
     Route::get('/nonghyups', App\Http\Livewire\Ots\Nonghyups::class)->name('nonghyups');
     Route::get('/expenses', App\Http\Livewire\Ots\Expenses::class)->name('expenses');
+    Route::get('/staff', App\Http\Livewire\Ots\Staff::class)->name('staff');
+    Route::get('/accounts', App\Http\Livewire\Ots\Accounts::class)->name('account');
+    Route::get('/expenditures', App\Http\Livewire\Ots\Expenditures::class)->name('expenditures');
     Route::get('/management', App\Http\Livewire\Ots\Management::class)->name('management');
 });

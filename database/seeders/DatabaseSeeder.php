@@ -32,5 +32,14 @@ class DatabaseSeeder extends Seeder
 
         \App\Models\Expense::truncate();
         $this->call(ExpensesTableSeeder::class);
+
+        \App\Models\Account::truncate();
+        $this->call(AccountsTableSeeder::class);
+
+        \App\Models\Staff::truncate();
+        $this->call(StaffTableSeeder::class);
+
+        \App\Models\Expenditure::truncate();
+        $this->call(ExpendituresTableSeeder::class);
     }
 }
