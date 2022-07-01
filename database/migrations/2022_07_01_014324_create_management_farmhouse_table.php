@@ -13,12 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('cultivated_lands', function (Blueprint $table) {
+        Schema::create('management_farmhouse', function (Blueprint $table) {
             $table->id();
-            // 대규모/전업농
-            $table->decimal('area', 10, 2)->nullable();         // 소유 경지면적
-            $table->string('items')->nullable();                // 재배품목
-            $table->timestamps();
+
+            $table->year('management_year');
+            $table->foreign('management_year')->references('year')->on('management')->onDelete('cascade');
+            $table->foreignId('farmhouse_id')->constrained()->onDelete('cascade');
         });
     }
 
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('cultivated_lands');
+        Schema::dropIfExists('management_farmhouse');
     }
 };

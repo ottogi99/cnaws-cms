@@ -13,17 +13,27 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('farmers', function (Blueprint $table) {
+        Schema::create('farmhouses', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->date('birthday');
             $table->enum('gender', ['M', 'F']);
             $table->string('address');
             $table->string('contact', 11);
-            $table->timestamps();
+            $table->enum('size', ['S', 'L']);
 
+            // 소규모/영세농
+            $table->decimal('rice_field', 10, 2)->nullable();   // 답작 (논)
+            $table->decimal('field', 10, 2)->nullable();        // 전작 (밭)
+            $table->decimal('other_field', 10, 2)->nullable();  // 기타
+            // 대규모/전업농
+            $table->decimal('area', 10, 2)->nullable();         // 소유 경지면적
+            $table->string('items')->nullable();                // 재배품목
+            // 외래키
             $table->foreignId('nonghyup_id')->constrained()->before('name');
-            $table->foreignId('farmland_id')->nullable()->constrained()->after('contact');
+            $table->foreignId('account_id')->nullable()->constrained()->after('contact');
+
+            $table->timestamps();
         });
     }
 

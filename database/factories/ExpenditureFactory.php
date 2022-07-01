@@ -19,41 +19,51 @@ class ExpenditureFactory extends Factory
     {
         $nonghyupsIds = DB::table('nonghyups')->pluck('id');
         $nonghyupId = $this->faker->randomElement($nonghyupsIds);
-        // $expenditureTypes = ['OPER', 'LABOR', 'EDUPR'];
-        $expenditureTypes = ['OPER', 'EDUPR'];
+        $expenditureTypes = ['OPER', 'LABOR', 'EDUPR'];
+        // $expenditureTypes = ['OPER', 'EDUPR'];
 
-        $staffIds = DB::table('staff')->where('nonghyup_id', '=', $nonghyupId)->pluck('id');
-        $accountId = null;
-        $expenditureType = 'OPER';
-        if(Count($staffIds) > 0) {
-            if (DB::table('accounts')
-                ->where('accountable_type', '=', 'App\\Models\\Staff')
-                // ->where('accountable_type', '=', 'Staff')
-                // ->orWhereIn('accountable_id', $staffIds)->first()->pluck('id');
-                ->whereIn('accountable_id', $staffIds)->exists()) {
+        // $accountId = null;
+        // $expenditureType = 'OPER';
+        $staffId = null;
 
-                $accountId = DB::table('accounts')
-                    ->where('accountable_type', '=', 'App\\Models\\Staff')
-                    ->whereIn('accountable_id', $staffIds)->first()->id;
+        $expenditureType = $this->faker->randomElement($expenditureTypes);
 
-                $expenditureType = 'LABOR';
-            }
+        if ($expenditureType == 'LABOR') {
+            $staffIds = DB::table('staff')->where('nonghyup_id', '=', $nonghyupId)->pluck('id');
+            if (Count($staffIds) > 0)
+                $staffId = $this->faker->randomElement($staffIds);
         }
-        else {
-            $expenditureType = $this->faker->randomElement($expenditureTypes);
-        }
+
+        // if(Count($staffIds) > 0) {
+        //     if (DB::table('accounts')
+        //         ->where('accountable_type', '=', 'App\\Models\\Staff')
+        //         // ->where('accountable_type', '=', 'Staff')
+        //         // ->orWhereIn('accountable_id', $staffIds)->first()->pluck('id');
+        //         ->whereIn('accountable_id', $staffIds)->exists()) {
+
+        //         $accountId = DB::table('accounts')
+        //             ->where('accountable_type', '=', 'App\\Models\\Staff')
+        //             ->whereIn('accountable_id', $staffIds)->first()->id;
+
+        //         $expenditureType = 'LABOR';
+        //     }
+        // }
+        // else {
+        //     $expenditureType = $this->faker->randomElement($expenditureTypes);
+        // }
 
         return [
             'type' => $expenditureType,
             'nonghyup_id' => $nonghyupId,
             'item' => $this->faker->word(),
-            'target' => $this->faker->word(),
+            'target' => $expenditureType != 'LABOR' ? $this->faker->word() : null,
             'details' => $this->faker->sentence(),
             'amount' => $this->faker->randomNumber(4, true),
             'payment_at' => $this->faker->date(),
-            'account_id' => $expenditureType === 'LABOR'
-                ? $accountId
-                : null,
+            'staff_id' => $expenditureType == 'LABOR' ? $staffId : null,
+            // 'account_id' => $expenditureType === 'LABOR'
+            //     ? $accountId
+            //     : null,
         ];
     }
 }

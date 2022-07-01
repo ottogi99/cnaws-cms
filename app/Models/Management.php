@@ -40,6 +40,17 @@ class Management extends Model
         'deadline',
     ];
 
+    // 관계설정
+    public function nonghyups()
+    {
+        return $this->belongsToMany(Nonghyup::class, 'management_nonghyups');
+    }
+
+    public function farmhouses()
+    {
+        return $this->belongsToMany(Farmhouse::class, 'management_farmhouse');
+    }
+
     public static function yearList()
     {
         $yearList = [];

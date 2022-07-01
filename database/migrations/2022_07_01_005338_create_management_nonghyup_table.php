@@ -13,13 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('farmlands', function (Blueprint $table) {
+        Schema::create('management_nonghyup', function (Blueprint $table) {
             $table->id();
-            // 소규모/영세농
-            $table->decimal('rice_field', 10, 2)->nullable();   // 답작 (논)
-            $table->decimal('field', 10, 2)->nullable();        // 전작 (밭)
-            $table->decimal('other_field', 10, 2)->nullable();  // 기타
-            $table->timestamps();
+
+            $table->year('management_year');
+            $table->foreign('management_year')->references('year')->on('management');
+            $table->foreignId('nonghyup_id')->constrained()->onDelete('cascade');
         });
     }
 
@@ -30,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('farmlands');
+        Schema::dropIfExists('management_farmhouses');
     }
 };
