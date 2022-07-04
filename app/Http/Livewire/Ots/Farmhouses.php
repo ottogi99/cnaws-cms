@@ -5,9 +5,10 @@ namespace App\Http\Livewire\Ots;
 use App\Http\Livewire\Ots\WithBulkActions;
 use App\Http\Livewire\Ots\WithPerPagePagination;
 use App\Http\Livewire\Ots\WithSorting;
+use App\Models\Account;
+use App\Models\Farmhouse;
 use App\Models\Nonghyup;
-use App\Models\Staff as ModelStaff;
-use App\Models\Account as ModelAccount;
+use Database\Seeders\ManagementFarmhouseSeeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -28,11 +29,11 @@ class Farmhouses extends Component
         'account-name' => '',
         'account-number' => '',
     ];
+    public $yearForEditing = '';
 
-
-    public ModelStaff $editing;
-    public ModelStaff $editingStaff;
-    public ModelAccount $editingAccount;
+    public Farmhouse $editing;
+    // public ModelStaff $editingStaff;
+    public Account $editingAccount;
 
     protected $queryString = ['perPage'];
 
@@ -42,10 +43,21 @@ class Farmhouses extends Component
     public function rules()
     {
         return  [
-            'editingStaff.nonghyup_id' => ['required',],
-            'editingStaff.name' => 'required',
-            'editingStaff.birthday' => 'required',
-
+            'year_for_editing' => 'required',
+            'editing.nonghyup_id' => ['required',],
+            'editing.name' => 'required',
+            'editing.birthday' => 'required',
+            'editing.gender' => 'required',
+            'editing.address' => 'required',
+            'editing.contact' => 'required',
+            'editing.size' => 'required',
+            // S
+            'editing.rice_field' => 'required',
+            'editing.field' => 'required',
+            'editing.other_field' => 'required',
+            // L
+            'editing.area' => 'required',
+            'editing.items' => 'required',
             'editingAccount.name' => 'required',
             'editingAccount.number' => 'required',
             'editingAccount.accountable_type' => 'required',
@@ -54,7 +66,7 @@ class Farmhouses extends Component
 
     public function mount()
     {
-        $this->editingStaff = $this->makeBlankStaff();
+        $this->editing = $this->makeBlankModel();
         $this->editingAccount = $this->makeBlankAccount();
     }
 
@@ -94,41 +106,58 @@ class Farmhouses extends Component
             : Nonghyup::all();
     }
 
-    public function makeBlankStaff()
+    public function makeBlankModel()
     {
-        return ModelStaff::make([
-            'name' => '',
-            'birthday' => null,
+        return Farmhouse::make([
+            'gender' => '',
+            'size' => '',
+            'rice_field' => 0,
+            'field' => 0,
+            'other_field' => 0,
             'nonghyup_id' => '',
-            'account_id' => null,
+            'account_id' => '',
         ]);
     }
 
+    // public function makeBlankStaff()
+    // {
+    //     return ModelStaff::make([
+    //         'name' => '',
+    //         'birthday' => null,
+    //         'nonghyup_id' => '',
+    //         'account_id' => null,
+    //     ]);
+    // }
+
     public function makeBlankAccount()
     {
-        return ModelAccount::make([
-            'name' => '',
-            'number' => '',
-            'accountable_type' => 'App\Models\Staff',
+        return Account::make([
+            'accountable_type' => \App\Models\Farmhouse::class,
         ]);
     }
 
     public function create()
     {
-        if ($this->editingStaff->getKey()) {  // $this->editing 오버라이딩 하는 조건을 담
-            $this->editingStaff = $this->makeBlankStaff();
+        if ($this->editing->getKey()) {  // $this->editing 오버라이딩 하는 조건을 담
+            $this->editing = $this->makeBlankModel();
             $this->editingAccount = $this->makeBlankAccount();
+            $this->yearForEditing = '';
         }
 
         $this->showEditModal = true;
     }
 
-    public function edit(ModelStaff $model)
+    public function edit(Farmhouse $model, $editYear)
     {
-        if ($this->editingStaff->isNot($model)) {   // 편집중인 editing이면 오버라이딩 하지 않도록
-            $this->editingStaff = $model;
-            $this->editingAccount = ModelAccount::where('accountable_id', $model->account_id)
-                ->where('accountable_type', \App\Models\Staff::class)->first();
+        if ($this->editing->isNot($model) || $this->yearForEditing != $editYear) {   // 편집중인 editing이면 오버라이딩 하지 않도록
+            $this->editing = $model;
+            $this->yearForEditing = $editYear;
+
+            $account = Account::where('id', $model->account_id)
+                ->where('accountable_type', \App\Models\Farmhouse::class)->first();
+
+            if (isset($account))
+                $this->editingAccount = $account;
         }
 
         $this->showEditModal = true;
@@ -139,14 +168,17 @@ class Farmhouses extends Component
         $this->validate();
 
         DB::transaction(function() {
-            $this->editingStaff->save();
+            $this->editing->save();
 
-            if (isset($this->editingAccount)) {     // 신규 추가 (create -> Save) 처리
-                $this->editingAccount->accountable_id = $this->editingStaff->id;
+            if (! isset($this->editingAccount)) {     // 신규 추가 (create -> Save) 처리
+                $this->editingAccount->accountable_id = $this->editing->id;
                 $this->editingAccount->save();
-                $this->editingStaff->account_id = $this->editingAccount->id;
-                $this->editingStaff->save();
+                $this->editing->account_id = $this->editingAccount->id;
+                $this->editing->save();
             } else {
+                $this->farmhouse->management()->create([
+                    'year_for_editing'
+                ]);
                 $this->editingAccount->save();
             }
         });
@@ -166,8 +198,8 @@ class Farmhouses extends Component
             $query->from('farmhouses')
             ->join('nonghyups', 'nonghyup_id', 'nonghyups.id')
             ->leftJoin('accounts', function($join) {
-                $join->on('account_id', '=', 'accounts.accountable_id');
-                $join->on('accounts.accountable_type', '=', DB::raw("'".\App\Models\Farmhouse::class."'"));
+                $join->on('account_id', '=', 'accounts.id');
+                $join->on('accounts.accountable_type', '=', DB::raw("'App\\\Models\\\Farmhouse'"));
             })
             ->select(
                 'farmhouses.id as farmhouse_id', 'size', 'farmhouses.name as farmhouse_name', 'birthday', 'gender', 'farmhouses.address as farmhouse_address', 'farmhouses.contact as farmhouse_contact',
@@ -212,6 +244,7 @@ class Farmhouses extends Component
 
         return view('livewire.ots.farmhouses', [
             'items' => $this->rows,
+            // dd($this->rows),
         ]);
     }
 }

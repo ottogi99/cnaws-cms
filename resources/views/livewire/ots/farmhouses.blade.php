@@ -105,7 +105,7 @@
                     @endif
 
                     @forelse ($items as $item)
-                        <x-table.row wire:loading.class.delay="opacity-50" wire:key="row-{{ $item->id }}">
+                        <x-table.row wire:loading.class.delay="opacity-50" wire:key="row-{{ $item->year.'-'.$item->id }}">
                             <x-table.cell class="pr-0">
                                 <x-input.checkbox wire:model="selected" value="{{ $item->id }}" />
                             </x-table.cell>
@@ -202,7 +202,7 @@
                             </x-table.cell>
 
                             <x-table.cell>
-                                <x-button.link wire:click="edit({{ $item->id }})" key="{{ $item->id }}">Edit</x-button.link>
+                                <x-button.link wire:click="edit({{ $item->id }}, {{ $item->year }})" key="{{ $item->id }}-{{ $item->year }}">Edit</x-button.link>
                             </x-table.cell>
                         </x-table.row>
                     @empty
@@ -227,11 +227,22 @@
     <!-- 저장 모달 -->
     <form wire:submit.prevent="save">
         <x-modal.dialog wire:model="showEditModal">
-            <x-slot name="title">직원등록(수정)</x-slot>
+            <x-slot name="title">농가 등록(수정)</x-slot>
 
             <x-slot name="content">
-                <x-input.group inline for="editingStaff_nonghyup" label="농협" :error="$errors->first('editingStaff.nonghyup')">
-                    <x-input.select wire:model="editingStaff.nonghyup_id" id="editingStaff_nonghyup">
+                {{-- @if (empty($yearForEditing)) --}}
+                <x-input.group inline for="editing-year" label="년도">
+                    <x-input.select wire:model.defer="yearForEditing" id="editing-year">
+                        <option value="" disabled>년도를 선택하세요</option>
+                        @foreach (App\Models\Management::yearList(1975) as $value)
+                        <option value="{{ $value }}">{{ $value }}</option>
+                        @endforeach
+                    </x-input.select>
+                </x-input.group>
+                {{-- @endif --}}
+
+                <x-input.group inline for="editing_nonghyup" label="농협" :error="$errors->first('editing.nonghyup')">
+                    <x-input.select wire:model.defer="editing.nonghyup_id" id="editing_nonghyup">
                         <option value="" disabled>농협을 선택하세요</option>
                         @foreach ($this->nonghyups as $nonghyup)
                         <option value="{{ $nonghyup->id }}">{{ $nonghyup->name }}</option>
@@ -239,25 +250,74 @@
                     </x-input.select>
                 </x-input.group>
 
-                <x-input.group for="editingStaff_name" label="이름" :error="$errors->first('editingStaff.name')">
-                    <x-input.text wire:model.defer="editingStaff.name" id="editingStaff_name" />
+                {{-- <x-input.group for="editing_farmhouse_name" label="이름" :error="$errors->first('editing.farmhouse_name')">
+                    <x-input.text wire:model.defer="editing.farmhouse_name" id="editing_farmhouse_name" />
+                </x-input.group> --}}
+                <x-input.group for="editing_name" label="이름" :error="$errors->first('editing.name')">
+                    <x-input.text wire:model.defer="editing.name" id="editing_name" />
                 </x-input.group>
 
-                <x-input.group for="editing_birthday" label="생년월일" :error="$errors->first('editingStaff.birthday')">
-                    <x-input.date wire:model.defer="editingStaff.birthday" id="editing_birthday" placeholder="YYYY-MM-DD" />
+                <x-input.group for="editing_birthday" label="생년월일" :error="$errors->first('editing.birthday')">
+                    <x-input.date wire:model.defer="editing.birthday" id="editing_birthday" placeholder="YYYY-MM-DD" />
                 </x-input.group>
 
-                <x-input.group for="editing_bank_name" label="은행명" :error="$errors->first('editingAccount.name')">
-                    <x-input.text wire:model.defer="editingAccount.name" id="editing_bank_name" />
+                <x-input.group for="editing_gender" label="성별" :error="$errors->first('editing.gender')">
+                    <x-input.select wire:model="editing.gender" id="gender">
+                        <option value="" disabled>성별을 선택하세요</option>
+                        <option value="M">남</option>
+                        <option value="F">여</option>
+                    </x-input.select>
                 </x-input.group>
 
-                <x-input.group for="editing_bank_number" label="계좌번호" :error="$errors->first('editingAccount.number')">
-                    <x-input.text wire:model.defer="editingAccount.number" id="editing_bank_number" />
+                <x-input.group for="editing_address" label="주소" :error="$errors->first('editing.address')">
+                    <x-input.text wire:model.defer="editing.address" id="editing_address" />
                 </x-input.group>
 
-                {{-- <x-input.group for="editing_accountable_type" label="계좌구분" :error="$errors->first('editingAccount.accountable_type')"> --}}
-                    <x-input.hidden wire:model.defer="editingAccount.accountable_type" id="editing_accountable_type" />
-                {{-- </x-input.group> --}}
+                <x-input.group for="editing_contact" label="연락처" :error="$errors->first('editing.contact')">
+                    <x-input.text wire:model.defer="editing.contact" id="editing_contact" />
+                </x-input.group>
+
+                <x-input.group for="editing_size" label="농가규모" :error="$errors->first('editing.size')">
+                    <x-input.select wire:model="editing.size" id="size">
+                        <option value="" disabled>농협을 선택하세요</option>
+                        <option value="L">대규모/전업농</option>
+                        <option value="S">소규모/영세농</option>
+                    </x-input.select>
+                </x-input.group>
+
+                @if ($editing->size === 'S')
+                    <x-input.group for="editing_rice_field" label="답작" :error="$errors->first('editing.rice_field')">
+                        <x-input.text wire:model.defer="editing.rice_field" id="editing_rice_field" />
+                    </x-input.group>
+
+                    <x-input.group for="editing_field" label="전작" :error="$errors->first('editing.field')">
+                        <x-input.text wire:model.defer="editing.field" id="editing_field" />
+                    </x-input.group>
+
+                    <x-input.group for="editing_other_field" label="기타" :error="$errors->first('editing.other_field')">
+                        <x-input.text wire:model.defer="editing.other_field" id="editing_other_field" />
+                    </x-input.group>
+                @elseif ($editing->size === 'L')
+                    <x-input.group for="editing_area" label="경지면적" :error="$errors->first('editing.area')">
+                        <x-input.text wire:model.defer="editing.area" id="editing_area" />
+                    </x-input.group>
+
+                    <x-input.group for="editing_items" label="재배품목" :error="$errors->first('editing.items')">
+                        <x-input.text wire:model.defer="editing.items" id="editing_items" />
+                    </x-input.group>
+
+                    <x-input.group for="editing_bank_name" label="은행명" :error="$errors->first('editingAccount.name')">
+                        <x-input.text wire:model.defer="editingAccount.name" id="editing_bank_name" />
+                    </x-input.group>
+
+                    <x-input.group for="editingAccount_bank_number" label="계좌번호" :error="$errors->first('editingAccount.number')">
+                        <x-input.text wire:model.defer="editingAccount.number" id="editingAccount_bank_number" />
+                    </x-input.group>
+
+                    {{-- <x-input.group for="editing_accountable_type" label="계좌구분" :error="$errors->first('editingAccount.accountable_type')"> --}}
+                        <x-input.hidden wire:model.defer="editingAccount.accountable_type" id="editingAccount_accountable_type" />
+                    {{-- </x-input.group> --}}
+                @endif
 
             </x-slot>
 

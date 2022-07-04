@@ -51,10 +51,10 @@ class Management extends Model
         return $this->belongsToMany(Farmhouse::class, 'management_farmhouse');
     }
 
-    public static function yearList()
+    public static function yearList($firstYear = 2020)
     {
         $yearList = [];
-        $firstYear = 2020;
+        // $firstYear = 2020;
         $currentYear = now()->year;
 
         while ($firstYear <= $currentYear)
