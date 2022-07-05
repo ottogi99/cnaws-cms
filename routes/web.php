@@ -39,5 +39,8 @@ Route::middleware([
     Route::get('/accounts', App\Http\Livewire\Ots\Accounts::class)->name('account');
     Route::get('/expenditures', App\Http\Livewire\Ots\Expenditures::class)->name('expenditures');
     Route::get('/farmhouses', App\Http\Livewire\Ots\Farmhouses::class)->name('farmhouses');
+    Route::get('/machineries', App\Http\Livewire\Ots\Machineries::class)->name('machineries');
+    Route::get('/trainings', App\Http\Livewire\Ots\Trainings::class)->name('trainings');
+    Route::get('/support_teams', App\Http\Livewire\Ots\SupportTeams::class)->name('support_teams');
     Route::get('/management', App\Http\Livewire\Ots\Management::class)->name('management');
 });

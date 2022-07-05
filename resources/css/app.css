@@ -2,3 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+    font-family: "Noto Sans KR";
+    src: url("/fonts/NotoSansKR-Regular.otf") format("otf");
+}
+
+@font-face {
+    font-family: "Jua";
+    src: url("/fonts/JUA-REGULAR.TTF") format("ttf");
+}
